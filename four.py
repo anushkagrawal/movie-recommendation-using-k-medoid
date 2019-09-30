@@ -48,46 +48,74 @@ with open("gre2.csv", 'r') as data_file:
         #print(row)
         point = [float(row[1]), float(row[2])]
         points.append(point)
-
-def find_user_id(centroid, index):
+            
+def find_user_id(centroid, index, user_user_id):
     centroid_userid=-1
     for i in range(len(genre_ratings)):
         if centroid[index][0]==genre_ratings[i][0] and centroid[index][1]==genre_ratings[i][1]:
             centroid_userid=i
             break
     print('centroid_userid=',centroid_userid+1)
-    find_centroid_entry(centroid_userid)        
+    find_centroid_entry(centroid_userid,user_user_id)        
     
                 
-def find_centroid_entry(centroid_userid):
+def find_centroid_entry(centroid_userid,user_user_id):
     centroid_userid+=1
     movie_ids=[]
     ratings=[]
     entry=[]
     centroid_data=[]
 
-#     with open('ml-latest-small/ratings.csv', 'r',encoding="utf8") as csvfile:
-#        reader = csv.reader(csvfile)
-#        for row in reader:
-#            #print(row[0])
-#            x=row[0]
-#            if (centroid_userid == x):
-#                print('hi')
-#                movie_ids.append(row[1])
-#                ratings.append(row[2])
-#                print(row)
     ratings1 = pd.read_csv('ml-latest-small/ratings.csv', index_col ="userId") 
     centroid_data = ratings1.loc[[centroid_userid],["movieId","rating"]]
     print('centroid_data')
     print(centroid_data)
+    #centroid_data=pd.DataFrame(centroid_data)
+   # print(centroid_data[1][1])
+    ratings2 = pd.read_csv('ml-latest-small/combined1.csv', index_col = "userId",encoding = "ISO-8859-1") 
+    centroid_data1 = ratings2.loc[[centroid_userid],["movieId","title","genres","rating"]]
+    print('centroid_data1')
+    print(centroid_data1)
+    centroid_data1=pd.DataFrame(centroid_data1)
     
-    with open("ml-latest-small/ratings.csv", 'r') as data_file:
-        read_obj = reader(data_file)
-        for row in read_obj:
-            if row[0] == 2 :
-                print(row)
-                entry = [row[1], row[2]]
-                centroid_data.append(entry)
+    ratings2 = pd.read_csv('ml-latest-small/ratings.csv',encoding = "ISO-8859-1") 
+    new = ratings2["userId"].isin([centroid_userid])
+    print('ratings2[new]')
+    print(ratings2[new])
+    
+    
+    movies2 = pd.read_csv('combined.csv',encoding = "ISO-8859-1") 
+    new1 = movies2["userId"].isin([centroid_userid])
+    print('movies2[new1]')
+    print(movies2[new1])
+    
+    ratings3 = pd.read_csv('ml-latest-small/ratings.csv',encoding = "ISO-8859-1") 
+    new2 = ratings3["userId"].isin([user_user_id])
+    print('ratings3[new2]')
+    print(ratings3[new2])
+    
+    
+    movies3 = pd.read_csv('combined.csv',encoding = "ISO-8859-1") 
+    new3 = movies3["userId"].isin([user_user_id])
+    print('movies3[new3]')
+    print(movies3[new3])
+    
+    
+    genre_ratings_centroid = helper.get_genre_ratings(ratings2[new], movies2[new1], ['Romance', 'Sci-Fi'], ['avg_romance_rating', 'avg_scifi_rating'])
+    print('genre_ratings_centroid')
+    print(genre_ratings_centroid)
+    
+    genre_ratings_user_user_id = helper.get_genre_ratings(ratings3[new2], movies3[new3], ['Romance', 'Sci-Fi'], ['avg_romance_rating', 'avg_scifi_rating'])
+    print('genre_ratings_user_user_id')
+    print(genre_ratings_user_user_id)
+    
+#    with open("ml-latest-small/ratings.csv", 'r') as data_file:
+#        read_obj = reader(data_file)
+#        for row in read_obj:
+#            if row[0] == 2 :
+#                print(row)
+#                entry = [row[1], row[2]]
+#                centroid_data.append(entry)
                  
 # Accepts two data points a and b.
 # Returns the distance between a and b.
@@ -134,7 +162,7 @@ def findClusterMedoid(cluster):
 # Accepts a list of data points, and a number of clusters.
 # Produces a set of lists representing a K-Medoids clustering
 #  of D.
-def KMedoids(D, k, x):
+def KMedoids(D, k, x, user_user_id):
     #initialize medoids and oldMedoidss to size k
     medoids = D[0:k]
     oldMedoids = [None] * k
@@ -182,7 +210,8 @@ def KMedoids(D, k, x):
            
     print('user belongs to cluster:', index)    
     #find_centroid_entry(x,[centroids[index][0],centroids[index][1]])
-    find_user_id(centroids, index)
+    find_user_id(centroids, index, user_user_id)
+    #pearson_coefficient(user_id,centroid)
     return clusters
 
 def visualize(clusters):
@@ -213,11 +242,12 @@ def visualize(clusters):
 #		i+=1
 
 def main():
-    #user_id=input("enter udser_id:")
-    #print(user_id)
+    user_user_id=5
+   # print(user_id)
     x=[2.5,3]
     
-    myMedoids = KMedoids(points, 2, x)
+    myMedoids = KMedoids(points, 5, x, user_user_id)
+    
     '''print('***************************************************')
     
     
