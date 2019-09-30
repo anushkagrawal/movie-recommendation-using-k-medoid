@@ -22,7 +22,8 @@ movies = pd.read_csv('ml-latest-small/movies.csv')
 
 # Import the ratings dataset
 ratings = pd.read_csv('ml-latest-small/ratings.csv')
-
+#combined= pd.merge(movies, ratings.rename(columns={'movieId':'movieId'}), on='movieId',  how='left')
+combined = pd.merge(movies, ratings, on='movieId', how='inner')
 genre_ratings = helper.get_genre_ratings(ratings, movies, ['Romance', 'Sci-Fi'], ['avg_romance_rating', 'avg_scifi_rating'])
 genre_ratings.head()
 
@@ -64,7 +65,6 @@ def find_centroid_entry(centroid_userid):
     ratings=[]
     entry=[]
     centroid_data=[]
-    
 
 #     with open('ml-latest-small/ratings.csv', 'r',encoding="utf8") as csvfile:
 #        reader = csv.reader(csvfile)
@@ -76,11 +76,15 @@ def find_centroid_entry(centroid_userid):
 #                movie_ids.append(row[1])
 #                ratings.append(row[2])
 #                print(row)
-                
+    ratings1 = pd.read_csv('ml-latest-small/ratings.csv', index_col ="userId") 
+    centroid_data = ratings1.loc[[centroid_userid],["movieId","rating"]]
+    print('centroid_data')
+    print(centroid_data)
+    
     with open("ml-latest-small/ratings.csv", 'r') as data_file:
         read_obj = reader(data_file)
         for row in read_obj:
-            if(row[0] in centroid_userid ):
+            if row[0] == 2 :
                 print(row)
                 entry = [row[1], row[2]]
                 centroid_data.append(entry)
