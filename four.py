@@ -50,10 +50,28 @@ with open("gre2.csv", 'r') as data_file:
         point = [float(row[1]), float(row[2])]
         points.append(point)
 
-def unwatched_movies(genre):
+def top_movies(genre,user_user_id):
+    
+    ratings4=pd.read_csv('combined.csv',encoding = "ISO-8859-1")
+    Romance2 = ratings4[['title','userId', 'genres','rating']]
+
+    rating_romance = ratings4.genres.str.contains(genre)
+    
+    Romance2=Romance2[rating_romance]
+    userid1=ratings4.userId==user_user_id
+    Romance2=Romance2[~userid1]
+    t=Romance2.groupby(['title']).mean()
+    asc_user_rating=t.sort_values(by ='rating',ascending=False )
+    print('\n')
+    print('Top Rated Movies in', genre)
+    top=asc_user_rating.head(5)
+    for row in top.index: 
+        print(row, end = '\n') 
+    
+def unwatched_movies(genre, centroid_userid, user_user_id):
     ratings4=pd.read_csv('combined.csv',encoding = "ISO-8859-1")
     rating_romance =  ratings4.genres.str.contains(genre)
-    rating_id= ratings4.userId == 3
+    rating_id= ratings4.userId == centroid_userid 
     romance=ratings4[rating_romance & rating_id]
     #print(romance)
     title1=romance["title"]
@@ -61,7 +79,7 @@ def unwatched_movies(genre):
 
     ratings4=pd.read_csv('combined.csv',encoding = "ISO-8859-1")
     rating_romance =  ratings4.genres.str.contains(genre)
-    rating_id= ratings4.userId == 7
+    rating_id= ratings4.userId == user_user_id
     romance2=ratings4[rating_romance & rating_id]
 #print(romance2)
     title2=romance2["title"]
@@ -92,7 +110,7 @@ def return_genre(i):
     if i==6:
         return "Thriller"
         
-def pearson_coefficient(centroid_userid, user_user_id, genre):
+def pearson_similarity(centroid_userid, user_user_id, genre):
     ratings4=pd.read_csv('combined.csv',encoding = "ISO-8859-1")
     rating_romance =  ratings4.genres.str.contains(genre)
     rating_id= ratings4.userId == centroid_userid
@@ -186,19 +204,19 @@ def find_centroid_entry(centroid_userid,user_user_id):
     ######### finding similarity ###########
     p={}    
 #p_romance
-    p[0]=pearson_similarity("Romance")
+    p[0]=pearson_similarity(centroid_userid, user_user_id, "Romance")
 #p_scifi
-    p[1]=pearson_similarity("Sci-Fi")
+    p[1]=pearson_similarity(centroid_userid, user_user_id, "Sci-Fi")
 #p_comedy
-    p[2]=pearson_similarity("Comedy")
+    p[2]=pearson_similarity(centroid_userid, user_user_id, "Comedy")
 #p_drama
-    p[3]=pearson_similarity("Drama")
+    p[3]=pearson_similarity(centroid_userid, user_user_id, "Drama")
 #p_animation
-    p[4]=pearson_similarity("Animation")
+    p[4]=pearson_similarity(centroid_userid, user_user_id, "Animation")
 #p_fantasy
-    p[5]=pearson_similarity("Fantasy")
+    p[5]=pearson_similarity(centroid_userid, user_user_id, "Fantasy")
 #p_thriller
-    p[6]=pearson_similarity("Thriller")
+    p[6]=pearson_similarity(centroid_userid, user_user_id, "Thriller")
 
 
     max=-1
@@ -212,16 +230,23 @@ def find_centroid_entry(centroid_userid,user_user_id):
             max=p[i]
             index=i
         
-    print(index)
-    print(max)
+    
 
     similar_genre=return_genre(index)
     print(similar_genre)
 
 
-    print('p coeff')
-    print(z)
-    unwatched_movies(similar_genre)
+    print('max p coeff')
+    print(max)
+    unwatched_movies(similar_genre, centroid_userid, user_user_id)
+    print('\n')
+    print('TOP RECOMMENDED MOVIES')
+    top_movies("Romance", user_user_id)
+    top_movies("Sci-Fi", user_user_id)
+    top_movies("Comedy", user_user_id)
+    top_movies("Drama", user_user_id)
+    top_movies("Thriller", user_user_id)
+    
 #    genre_ratings_centroid_r=movies2_new1["genre"].isin(["Romance"])
 #    print('genre_ratings_centroid_r')
 #    print(genre_ratings_centroid_r)     
@@ -358,6 +383,7 @@ def main():
     x=[2.5,3]
     
     myMedoids = KMedoids(points, 5, x, user_user_id)
+    
     
     '''print('***************************************************')
     
