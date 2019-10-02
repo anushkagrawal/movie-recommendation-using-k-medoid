@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import helper
 import csv
+import numpy as np
 from csv import reader
 
 centres=0
@@ -48,7 +49,77 @@ with open("gre2.csv", 'r') as data_file:
         #print(row)
         point = [float(row[1]), float(row[2])]
         points.append(point)
-            
+
+def unwatched_movies(genre):
+    ratings4=pd.read_csv('combined.csv',encoding = "ISO-8859-1")
+    rating_romance =  ratings4.genres.str.contains(genre)
+    rating_id= ratings4.userId == 3
+    romance=ratings4[rating_romance & rating_id]
+    #print(romance)
+    title1=romance["title"]
+    title1=pd.DataFrame(title1)
+
+    ratings4=pd.read_csv('combined.csv',encoding = "ISO-8859-1")
+    rating_romance =  ratings4.genres.str.contains(genre)
+    rating_id= ratings4.userId == 7
+    romance2=ratings4[rating_romance & rating_id]
+#print(romance2)
+    title2=romance2["title"]
+    title2=pd.DataFrame(title2)
+
+#droping duplicates titles
+    c=pd.DataFrame()
+    d=pd.DataFrame()
+    c=pd.concat([title1, title2]).drop_duplicates(keep=False)
+#d=pd.concat([c, title2]).drop_duplicates(keep=False)
+    d = pd.merge(c, title1, how='inner', on=['title'])
+    print('recommended movies')
+    print(d)       
+
+def return_genre(i):
+    if i==0:
+        return "Romance"
+    if i==1:
+        return "Sci-Fi"
+    if i==2:
+        return "Comedy"
+    if i==3:
+        return "Drama"
+    if i==4:
+        return "Animation"
+    if i==5:
+        return "Fantasy"
+    if i==6:
+        return "Thriller"
+        
+def pearson_coefficient(centroid_userid, user_user_id, genre):
+    ratings4=pd.read_csv('combined.csv',encoding = "ISO-8859-1")
+    rating_romance =  ratings4.genres.str.contains(genre)
+    rating_id= ratings4.userId == centroid_userid
+    romance=ratings4[rating_romance & rating_id]
+    #print(romance)
+    
+    ratings4=pd.read_csv('combined.csv',encoding = "ISO-8859-1")
+    rating_romance =  ratings4.genres.str.contains(genre)
+    rating_id= ratings4.userId == user_user_id
+    romance2=ratings4[rating_romance & rating_id]
+   # print(romance2)
+    
+    romance=pd.DataFrame(romance)
+    romance2=pd.DataFrame(romance2)
+    Romance=pd.merge(romance,romance2, on ="movieId")
+    Romance=pd.DataFrame(Romance)
+    print('Romance')
+    print(Romance)
+    
+    list1=Romance.iloc[:,5]  
+    list2=Romance.iloc[:,11]
+    z=np.corrcoef(list1, list2)[0,1]
+    if np.isnan(z):
+        return 0
+
+    return z
+        
 def find_user_id(centroid, index, user_user_id):
     centroid_userid=-1
     for i in range(len(genre_ratings)):
@@ -68,54 +139,94 @@ def find_centroid_entry(centroid_userid,user_user_id):
 
     ratings1 = pd.read_csv('ml-latest-small/ratings.csv', index_col ="userId") 
     centroid_data = ratings1.loc[[centroid_userid],["movieId","rating"]]
-    print('centroid_data')
+    print('centroid_data--------------------------------------------')
     print(centroid_data)
     #centroid_data=pd.DataFrame(centroid_data)
    # print(centroid_data[1][1])
     ratings2 = pd.read_csv('ml-latest-small/combined1.csv', index_col = "userId",encoding = "ISO-8859-1") 
     centroid_data1 = ratings2.loc[[centroid_userid],["movieId","title","genres","rating"]]
     print('centroid_data1')
-    print(centroid_data1)
-    centroid_data1=pd.DataFrame(centroid_data1)
+#    print(centroid_data1)
+#    centroid_data1=pd.DataFrame(centroid_data1)
+    #avg rating of each genre  
+# '''ratings2 = pd.read_csv('ml-latest-small/ratings.csv',encoding = "ISO-8859-1") 
+#    new = ratings2["userId"].isin([centroid_userid])
+#    print('ratings2[new]')
+#    print(ratings2[new])
+#    
+#    
+#    movies2 = pd.read_csv('combined.csv',encoding = "ISO-8859-1") 
+#    new1 = movies2["userId"].isin([centroid_userid])
+#    print('movies2[new1]')
+#    movies2_new1=movies2[new1]
+#    print(movies2_new1)
+#    
+#    
+#    ratings3 = pd.read_csv('ml-latest-small/ratings.csv',encoding = "ISO-8859-1") 
+#    new2 = ratings3["userId"].isin([user_user_id])
+#    print('ratings3[new2]')
+#    print(ratings3[new2])
+#    
+#    
+#    movies3 = pd.read_csv('combined.csv',encoding = "ISO-8859-1") 
+#    new3 = movies3["userId"].isin([user_user_id])
+#    print('movies3[new3]')
+#    print(movies3[new3])
+#    
+#    
+#    genre_ratings_centroid = helper.get_genre_ratings(ratings2[new], movies2[new1], ['Romance', 'Sci-Fi'], ['avg_romance_rating', 'avg_scifi_rating'])
+#    print('genre_ratings_centroid')
+#    print(genre_ratings_centroid)
+#    
+#    genre_ratings_user_user_id = helper.get_genre_ratings(ratings3[new2], movies3[new3], ['Romance', 'Sci-Fi'], ['avg_romance_rating', 'avg_scifi_rating'])
+#    print('genre_ratings_user_user_id')
+#    print(genre_ratings_user_user_id)'''
     
-    ratings2 = pd.read_csv('ml-latest-small/ratings.csv',encoding = "ISO-8859-1") 
-    new = ratings2["userId"].isin([centroid_userid])
-    print('ratings2[new]')
-    print(ratings2[new])
     
+    ######### finding similarity ###########
+    p={}    
+#p_romance
+    p[0]=pearson_similarity("Romance")
+#p_scifi
+    p[1]=pearson_similarity("Sci-Fi")
+#p_comedy
+    p[2]=pearson_similarity("Comedy")
+#p_drama
+    p[3]=pearson_similarity("Drama")
+#p_animation
+    p[4]=pearson_similarity("Animation")
+#p_fantasy
+    p[5]=pearson_similarity("Fantasy")
+#p_thriller
+    p[6]=pearson_similarity("Thriller")
+
+
+    max=-1
+    index=-1
+
+    for i in range(7):
+        print(p[i])
     
-    movies2 = pd.read_csv('combined.csv',encoding = "ISO-8859-1") 
-    new1 = movies2["userId"].isin([centroid_userid])
-    print('movies2[new1]')
-    print(movies2[new1])
-    
-    ratings3 = pd.read_csv('ml-latest-small/ratings.csv',encoding = "ISO-8859-1") 
-    new2 = ratings3["userId"].isin([user_user_id])
-    print('ratings3[new2]')
-    print(ratings3[new2])
-    
-    
-    movies3 = pd.read_csv('combined.csv',encoding = "ISO-8859-1") 
-    new3 = movies3["userId"].isin([user_user_id])
-    print('movies3[new3]')
-    print(movies3[new3])
-    
-    
-    genre_ratings_centroid = helper.get_genre_ratings(ratings2[new], movies2[new1], ['Romance', 'Sci-Fi'], ['avg_romance_rating', 'avg_scifi_rating'])
-    print('genre_ratings_centroid')
-    print(genre_ratings_centroid)
-    
-    genre_ratings_user_user_id = helper.get_genre_ratings(ratings3[new2], movies3[new3], ['Romance', 'Sci-Fi'], ['avg_romance_rating', 'avg_scifi_rating'])
-    print('genre_ratings_user_user_id')
-    print(genre_ratings_user_user_id)
-    
-#    with open("ml-latest-small/ratings.csv", 'r') as data_file:
-#        read_obj = reader(data_file)
-#        for row in read_obj:
-#            if row[0] == 2 :
-#                print(row)
-#                entry = [row[1], row[2]]
-#                centroid_data.append(entry)
+    for i in range(7):
+        if p[i]>max: 
+            max=p[i]
+            index=i
+        
+    print(index)
+    print(max)
+
+    similar_genre=return_genre(index)
+    print(similar_genre)
+
+
+    print('p coeff')
+    print(z)
+    unwatched_movies(similar_genre)
+#    genre_ratings_centroid_r=movies2_new1["genre"].isin(["Romance"])
+#    print('genre_ratings_centroid_r')
+#    print(genre_ratings_centroid_r)     
+
+
                  
 # Accepts two data points a and b.
 # Returns the distance between a and b.
@@ -242,8 +353,8 @@ def visualize(clusters):
 #		i+=1
 
 def main():
-    user_user_id=5
-   # print(user_id)
+    user_user_id=7
+    print(user_user_id)
     x=[2.5,3]
     
     myMedoids = KMedoids(points, 5, x, user_user_id)
