@@ -71,7 +71,7 @@ def return_append(i):
     s=[]
     for j in range(3):
         s.append([  min(dm1[i][j][0],dm2[i][j][0],dm3[i][j][0]) , (dm1[i][j][1]+dm2[i][j][1]+dm3[i][j][1])/3 , max(dm1[i][j][2],dm2[i][j][2],dm3[i][j][2])  ])
-    print(s)    
+    #print(s)    
     return s    
 
 cm=[] 
@@ -92,10 +92,10 @@ wt.append([7,9,9])
 wt.append([3,5,7])
 
 #normalized fuzzy decision  matrix
-#max value dersired ==> beneficial criteria
+#max value dersired ==> benefit criteria
 #min value desired ==>cost criteria
 
-#c is for beneficial criteria
+#c is for benefit criteria
 c=[]
 for j in range (2):
     c.append(find_max_c(cm,j))
